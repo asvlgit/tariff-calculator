@@ -4,4 +4,5 @@ currency:
 cost:
   rub:
     perKg: 400
+    perCbm: 400
     minimal: 350
