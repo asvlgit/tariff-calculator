@@ -33,7 +33,7 @@ class CalculateControllerTest extends ControllerTest {
     @DisplayName("Валидные данные для расчета стоимость -> Ответ 200")
     void whenValidInputData_thenReturn200() {
         var request = new CalculatePackagesRequest(
-                List.of(new CargoPackage(BigInteger.TEN)), "RUB");
+                List.of(new CargoPackage(BigInteger.TEN, BigInteger.TEN, BigInteger.TEN, BigInteger.TEN)), "RUB");
         var rub = new CurrencyFactory(code -> true).create("RUB");
         when(useCase.calc(any())).thenReturn(new Price(BigDecimal.valueOf(10), rub));
         when(useCase.minimalPrice()).thenReturn(new Price(BigDecimal.valueOf(5), rub));
@@ -48,6 +48,28 @@ class CalculateControllerTest extends ControllerTest {
     @DisplayName("Список упаковок == null -> Ответ 400")
     void whenEmptyListPackages_thenReturn400() {
         var request = new CalculatePackagesRequest(null, "RUB");
+
+        ResponseEntity<String> response = restTemplate.postForEntity(baseCalculateApi, request, String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Передача одного из параметров габаритов < 0 -> Ответ 400")
+    void whenLessDimensionsListPackages_thenReturn400() {
+        var request = new CalculatePackagesRequest(
+                List.of(new CargoPackage(BigInteger.TEN, BigInteger.TEN, BigInteger.TEN.negate(), BigInteger.TEN)), "RUB");
+
+        ResponseEntity<String> response = restTemplate.postForEntity(baseCalculateApi, request, String.class);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @DisplayName("Передача одного из параметров габаритов > 1500 -> Ответ 400")
+    void whenMoreDimensionsListPackages_thenReturn400() {
+        var request = new CalculatePackagesRequest(
+                List.of(new CargoPackage(BigInteger.TEN, BigInteger.TEN, BigInteger.valueOf(1600), BigInteger.TEN)), "RUB");
 
         ResponseEntity<String> response = restTemplate.postForEntity(baseCalculateApi, request, String.class);
 
