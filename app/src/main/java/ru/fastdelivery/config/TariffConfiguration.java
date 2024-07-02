@@ -13,7 +13,7 @@ import ru.fastdelivery.usecase.PriceProvider;
  * Определение реализаций бинов для всех модулей приложения
  */
 @Configuration
-public class Beans {
+public class TariffConfiguration {
 
     @Bean
     public CurrencyFactory currencyFactory(CurrencyPropertiesProvider currencyProperties) {
