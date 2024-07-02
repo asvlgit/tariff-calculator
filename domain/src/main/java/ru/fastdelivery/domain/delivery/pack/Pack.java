@@ -35,11 +35,12 @@ public record Pack(Weight weight, Dimensions dimensions) {
         if (dimensions.greaterThan(MAX_DIMENSIONS)) {
             throw new IllegalArgumentException("One or more dimensions cannot be greater than " + MAX_DIMENSIONS);
         }
-        //BigInteger lengthRound = dimensions.length().mod(BigInteger.valueOf(50));
+
         BigInteger lengthRound =
                 new BigDecimal(dimensions.length())
                         .divide(BigDecimal.valueOf(50), RoundingMode.UP).toBigInteger()
                         .multiply(BigInteger.valueOf(50));
+
         BigInteger widthRound =
                 new BigDecimal(dimensions.width())
                         .divide(BigDecimal.valueOf(50), RoundingMode.UP).toBigInteger()

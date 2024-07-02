@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.fastdelivery.domain.common.coordinate.Distance;
+import ru.fastdelivery.domain.common.coordinate.DistanceFactory;
 import ru.fastdelivery.domain.common.currency.CurrencyFactory;
 import ru.fastdelivery.domain.common.dimensions.Dimensions;
 import ru.fastdelivery.domain.common.weight.Weight;
@@ -27,6 +29,7 @@ import ru.fastdelivery.usecase.TariffCalculateUseCase;
 public class CalculateController {
     private final TariffCalculateUseCase tariffCalculateUseCase;
     private final CurrencyFactory currencyFactory;
+    private final DistanceFactory distanceFactory;
 
     private static Pack apply(CargoPackage cargoPackage) {
         Dimensions d = new Dimensions(cargoPackage.length(), cargoPackage.width(), cargoPackage.height());
@@ -42,30 +45,21 @@ public class CalculateController {
     })
     public CalculatePackagesResponse calculate(
             @Valid @RequestBody CalculatePackagesRequest request) {
-/*        var packsWeights = request.packages().stream()
-                .map(CargoPackage::weight)
-                .map(Weight::new)
-                .map(Pack::new)
-                .toList();
-
-
-        var packsVolume = request.packages().stream()
-                .map(cargoPackage ->
-                        new Dimensions(cargoPackage.length(), cargoPackage.width(), cargoPackage.height()))
-                .map(Pack::new)
-                .toList();
-                */
 
         var packs = request.packages().stream()
                 .map(CalculateController::apply)
                 .toList();
 
+        Distance distance = distanceFactory.create(request.departure(), request.destination());
 
-        var shipment = new Shipment(packs, currencyFactory.create(request.currencyCode()));
+        var shipment = new Shipment(packs,
+                currencyFactory.create(request.currencyCode()),
+                distance);
 
         var calculatedPrice = tariffCalculateUseCase.calc(shipment);
 
         var minimalPrice = tariffCalculateUseCase.minimalPrice();
+
         return new CalculatePackagesResponse(calculatedPrice, minimalPrice);
     }
 }

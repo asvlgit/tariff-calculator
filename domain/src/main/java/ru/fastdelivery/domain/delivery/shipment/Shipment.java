@@ -1,5 +1,6 @@
 package ru.fastdelivery.domain.delivery.shipment;
 
+import ru.fastdelivery.domain.common.coordinate.Distance;
 import ru.fastdelivery.domain.common.currency.Currency;
 import ru.fastdelivery.domain.common.dimensions.Dimensions;
 import ru.fastdelivery.domain.common.weight.Weight;
@@ -14,7 +15,8 @@ import java.util.List;
  */
 public record Shipment(
         List<Pack> packages,
-        Currency currency
+        Currency currency,
+        Distance distance
 ) {
     public Weight weightAllPackages() {
         return packages.stream()

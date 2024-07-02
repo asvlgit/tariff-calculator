@@ -3,6 +3,10 @@ package ru.fastdelivery.usecase;
 import org.assertj.core.util.BigDecimalComparator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import ru.fastdelivery.domain.common.coordinate.Departure;
+import ru.fastdelivery.domain.common.coordinate.Destination;
+import ru.fastdelivery.domain.common.coordinate.Distance;
+import ru.fastdelivery.domain.common.coordinate.DistanceFactory;
 import ru.fastdelivery.domain.common.currency.Currency;
 import ru.fastdelivery.domain.common.currency.CurrencyFactory;
 import ru.fastdelivery.domain.common.dimensions.Dimensions;
@@ -23,7 +27,9 @@ class TariffCalculateUseCaseTest {
 
     final PriceProvider priceProvider = mock(PriceProvider.class);
     final Currency currency = new CurrencyFactory(code -> true).create("RUB");
-
+    final Distance distance = new DistanceFactory((latitude, longitude) -> true).create(
+            new Departure(new BigDecimal(50), new BigDecimal(50)),
+            new Destination(new BigDecimal(50), new BigDecimal(50)));
     final TariffCalculateUseCase tariffCalculateUseCase = new TariffCalculateUseCase(priceProvider);
 
     @Test
@@ -38,7 +44,7 @@ class TariffCalculateUseCaseTest {
         when(priceProvider.costPerCbm()).thenReturn(pricePerCbm);
 
         var shipment = new Shipment(List.of(new Pack(new Weight(BigInteger.valueOf(1200)))),
-                new CurrencyFactory(code -> true).create("RUB"));
+                new CurrencyFactory(code -> true).create("RUB"), distance);
 
         var expectedPrice = new Price(BigDecimal.valueOf(120), currency);
         var actualPrice = tariffCalculateUseCase.calc(shipment);
@@ -62,9 +68,38 @@ class TariffCalculateUseCaseTest {
         var shipment = new Shipment(
                 List.of(new Pack(
                         new Dimensions(BigInteger.valueOf(1000), BigInteger.valueOf(1000), BigInteger.valueOf(1000)))),
-                new CurrencyFactory(code -> true).create("RUB"));
+                new CurrencyFactory(code -> true).create("RUB"), distance);
 
         var expectedPrice = new Price(BigDecimal.valueOf(100), currency);
+        var actualPrice = tariffCalculateUseCase.calc(shipment);
+
+        assertThat(actualPrice).usingRecursiveComparison()
+                .withComparatorForType(BigDecimalComparator.BIG_DECIMAL_COMPARATOR, BigDecimal.class)
+                .isEqualTo(expectedPrice);
+    }
+
+    @Test
+    @DisplayName("Расчет стоимости доставки с учетом координат -> успешно")
+    void whenCalculatePriceByDistance_thenSuccess() {
+        var minimalPrice = new Price(BigDecimal.TEN, currency);
+        var pricePerKg = new Price(BigDecimal.valueOf(100), currency);
+        var pricePerCbm = new Price(BigDecimal.valueOf(100), currency);
+
+        when(priceProvider.minimalPrice()).thenReturn(minimalPrice);
+        when(priceProvider.costPerKg()).thenReturn(pricePerKg);
+        when(priceProvider.costPerCbm()).thenReturn(pricePerCbm);
+
+        /* 1279.091 km */
+        Distance distance = new Distance(
+                new Departure(new BigDecimal(50), new BigDecimal(50)),
+                new Destination(new BigDecimal(60), new BigDecimal(60)));
+
+        var shipment = new Shipment(
+                List.of(new Pack(
+                        new Dimensions(BigInteger.valueOf(1000), BigInteger.valueOf(1000), BigInteger.valueOf(1000)))),
+                new CurrencyFactory(code -> true).create("RUB"), distance);
+
+        var expectedPrice = new Price(BigDecimal.valueOf(284.24), currency);
         var actualPrice = tariffCalculateUseCase.calc(shipment);
 
         assertThat(actualPrice).usingRecursiveComparison()

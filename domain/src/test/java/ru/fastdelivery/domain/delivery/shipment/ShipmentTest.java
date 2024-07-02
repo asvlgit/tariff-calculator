@@ -1,6 +1,9 @@
 package ru.fastdelivery.domain.delivery.shipment;
 
 import org.junit.jupiter.api.Test;
+import ru.fastdelivery.domain.common.coordinate.Departure;
+import ru.fastdelivery.domain.common.coordinate.Destination;
+import ru.fastdelivery.domain.common.coordinate.Distance;
 import ru.fastdelivery.domain.common.currency.CurrencyFactory;
 import ru.fastdelivery.domain.common.dimensions.Dimensions;
 import ru.fastdelivery.domain.common.weight.Weight;
@@ -20,7 +23,8 @@ class ShipmentTest {
         var weight2 = new Weight(BigInteger.ONE);
 
         var packages = List.of(new Pack(weight1), new Pack(weight2));
-        var shipment = new Shipment(packages, new CurrencyFactory(code -> true).create("RUB"));
+        var shipment = new Shipment(packages,
+                new CurrencyFactory(code -> true).create("RUB"), null);
 
         var massOfShipment = shipment.weightAllPackages();
 
@@ -33,7 +37,8 @@ class ShipmentTest {
         var dimensions2 = new Dimensions(BigInteger.ONE, BigInteger.ONE, BigInteger.ONE);
 
         var packages = List.of(new Pack(dimensions1), new Pack(dimensions2));
-        var shipment = new Shipment(packages, new CurrencyFactory(code -> true).create("RUB"));
+        var shipment = new Shipment(packages,
+                new CurrencyFactory(code -> true).create("RUB"), null);
 
         var volumeOfShipment = shipment.volumeAllPackages();
 

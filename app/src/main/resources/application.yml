@@ -6,7 +6,7 @@ cost:
     perKg: 400
     perCbm: 400
     minimal: 350
-restrictions:
+coordinate-restrictions:
   minLatitude: 45
   maxLatitude: 65
   minLongitude: 30

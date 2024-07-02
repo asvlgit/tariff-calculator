@@ -5,6 +5,8 @@ import ru.fastdelivery.domain.common.price.Price;
 import ru.fastdelivery.domain.delivery.shipment.Shipment;
 
 import javax.inject.Named;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Named
 @RequiredArgsConstructor
@@ -24,7 +26,18 @@ public class TariffCalculateUseCase {
                 .costPerCbm()
                 .multiply(volumeAllPackagesCmb);
 
-        return priceByWeight.max(priceByVolume).max(minimalPrice);
+        Price basePrice = priceByWeight.max(priceByVolume).max(minimalPrice);
+
+        BigDecimal distanceAsKilometer = shipment.distance().asKilometer();
+        if (distanceAsKilometer.compareTo(BigDecimal.valueOf(450)) > 0) {
+            BigDecimal newAmount = basePrice.amount()
+                    .multiply(distanceAsKilometer)
+                    .divide(BigDecimal.valueOf(450), 50, RoundingMode.HALF_UP)
+                    .setScale(2, RoundingMode.HALF_UP);
+            basePrice = new Price(newAmount, basePrice.currency());
+        }
+
+        return basePrice;
     }
 
     public Price minimalPrice() {
